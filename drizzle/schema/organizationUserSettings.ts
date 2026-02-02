@@ -1,0 +1,41 @@
+import {
+  boolean,
+  integer,
+  pgTable,
+  primaryKey,
+  varchar,
+} from "drizzle-orm/pg-core";
+import { UserTable } from "./user";
+import { OrganizationTable } from "./organization";
+import { createdAt, updatedAt } from "../schemaHelpers";
+import { relations } from "drizzle-orm";
+
+export const organizationUserSettingsTable = pgTable(
+  "organization_user_settings",
+  {
+    userId: varchar()
+      .notNull()
+      .references(() => UserTable.id),
+    organizationId: varchar()
+      .notNull()
+      .references(() => OrganizationTable.id),
+    newApplicationEmailNotificaitons: boolean().notNull().default(false),
+    minimumRating: integer(),
+    createdAt,
+    updatedAt,
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.organizationId] })],
+);
+export const organizationUserSettingsRelations = relations(
+  organizationUserSettingsTable,
+  ({ one }) => ({
+    user: one(UserTable, {
+      fields: [organizationUserSettingsTable.userId],
+      references: [UserTable.id],
+    }),
+    organization: one(OrganizationTable, {
+      fields: [organizationUserSettingsTable.userId],
+      references: [OrganizationTable.id],
+    }),
+  }),
+);
