@@ -6,7 +6,7 @@ import { relations } from "drizzle-orm";
 export const UserResumeTable = pgTable("user_resumes", {
   userId: varchar()
     .primaryKey()
-    .references(() => UserTable.id),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   resumeFileUrl: varchar().notNull(),
   resumeFileKey: varchar().notNull(),
   aiSummary: varchar(),

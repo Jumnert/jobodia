@@ -1,6 +1,6 @@
 import { pgTable, varchar } from "drizzle-orm/pg-core";
 import { createdAt, updatedAt } from "../schemaHelpers";
-import { UserNotificationSettingsTable } from "./useNotificationSettings";
+import { UserNotificationSettingsTable } from "./userNotificationSettings";
 import { UserResumeTable } from "./userResume";
 import { organizationUserSettingsTable } from "./organizationUserSettings";
 import { relations } from "drizzle-orm";

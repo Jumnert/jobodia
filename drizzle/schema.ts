@@ -4,4 +4,4 @@ export * from "./schema/jobListing";
 export * from "./schema/userResume";
 export * from "./schema/jobListingApplication";
 export * from "./schema/organizationUserSettings";
-export * from "./schema/organizationUserSettings";
+export * from "./schema/userNotificationSettings";

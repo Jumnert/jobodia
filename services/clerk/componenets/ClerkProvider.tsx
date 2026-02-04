@@ -6,12 +6,10 @@ import { useIsDarkMode } from "@/hooks/useIsDarkMode";
 export function ClerkProvider({ children }: { children: ReactNode }) {
   const isDarkmode = useIsDarkMode();
   return (
-    <Suspense>
-      <OriginalClerkProvider
-        appearance={isDarkmode ? { baseTheme: [dark] } : undefined}
-      >
-        {children}
-      </OriginalClerkProvider>
-    </Suspense>
+    <OriginalClerkProvider
+      appearance={isDarkmode ? { baseTheme: [dark] } : undefined}
+    >
+      <Suspense>{children}</Suspense>
+    </OriginalClerkProvider>
   );
 }
