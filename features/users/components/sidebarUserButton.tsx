@@ -1,0 +1,19 @@
+import { auth } from "@clerk/nextjs/server";
+import { Suspense } from "react";
+import { SidebarUserButtonClient } from "./_SidebarUserButtonClient";
+
+export function SidebarUserButton() {
+  return (
+    <Suspense>
+      <SideBarUserSuspense />
+    </Suspense>
+  );
+}
+async function SideBarUserSuspense() {
+  const { userId } = await auth();
+  return (
+    <SidebarUserButtonClient
+      user={{ email: "kyle@test.com", name: "Kyle Cook", imageUrl: "" }}
+    />
+  );
+}
