@@ -63,11 +63,13 @@ export function SidebarUserButtonClient({ user }: { user: User }) {
           <UserIcon className="mr-1" />
           Profile
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openUserProfile()} asChild>
-          <Link href="/user-settings/notifications">
-            <SettingsIcon className="mr-1" />
-            Settings
-          </Link>
+        <DropdownMenuItem
+          onClick={() => {
+            (openUserProfile(), setOpenMobile(false));
+          }}
+        >
+          <SettingsIcon className="mr-1" />
+          Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <SignOutButton>
