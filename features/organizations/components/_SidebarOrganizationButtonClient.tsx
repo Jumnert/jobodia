@@ -75,25 +75,23 @@ export function SidebarOrganizationButtonClient({
           Manage Organization
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/employer/user-settings">
+          <Link href="/employer/user-settings" className="flex items-center">
             <UserRoundCogIcon className="mr-1" />
+            User Settings
           </Link>
-          User Settings
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/employer/pricing">
+          <Link href="/employer/pricing" className="flex items-center">
             <UserRoundCogIcon className="mr-1" />
             Change Plan
           </Link>
-          User Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/organization/select">
+          <Link href="/organizations/select" className="flex items-center">
             <ArrowLeftRightIcon className="mr-1" />
             Switch Organzation
           </Link>
-          User Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <SignOutButton>
