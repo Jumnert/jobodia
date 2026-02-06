@@ -1,3 +1,4 @@
+import { AsyncIf } from "@/components/AsyncIf";
 import { MarkDownPartial } from "@/components/markdown/MarkDownPartial";
 import { MarkDownRenderer } from "@/components/markdown/MarkDownRenderer";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { JobListingBadges } from "@/features/jobListings/components/JobListingBa
 import { getJobListingsIdTag } from "@/features/jobListings/db/cache/jobListing";
 import { formatJobListingStatus } from "@/features/jobListings/lib/formatters";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
+import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermissions";
 import { and, eq } from "drizzle-orm";
 import { EditIcon } from "lucide-react";
 import { cacheTag } from "next/cache";
@@ -48,12 +50,20 @@ async function SuspendedPage({ params }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2 empty:-mt-4">
-          <Button asChild variant="outline">
-            <Link href={`/employer/job-listings/${jobListing.id}/edit`}>
-              <EditIcon className="size-4" />
-              Edit
-            </Link>
-          </Button>
+          <AsyncIf
+            condition={() =>
+              hasOrgUserPermission(
+                "org:create_job_listings:job_listings_update",
+              )
+            }
+          >
+            <Button asChild variant="outline">
+              <Link href={`/employer/job-listings/${jobListing.id}/edit`}>
+                <EditIcon className="size-4" />
+                Edit
+              </Link>
+            </Button>
+          </AsyncIf>
         </div>
       </div>
       <MarkDownPartial

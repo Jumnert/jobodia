@@ -12,12 +12,16 @@ import {
 import { db } from "@/drizzle/db";
 import { and, eq } from "drizzle-orm";
 import { JobListingTable } from "@/drizzle/schema";
+import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermissions";
 
 export async function createJobListing(
   unsafeData: z.infer<typeof jobListingSchema>,
 ) {
   const { orgId } = await getCurrentOrganization();
-  if (orgId == null) {
+  if (
+    orgId == null ||
+    !(await hasOrgUserPermission("org:create_job_listings:job_listings_create"))
+  ) {
     return {
       error: true,
       message: "You don't have permission to create a job listing",
@@ -44,21 +48,31 @@ export async function updateJobListing(
   unsafeData: z.infer<typeof jobListingSchema>,
 ) {
   const { orgId } = await getCurrentOrganization();
-  if (orgId == null) {
+  if (
+    orgId == null ||
+    !(await hasOrgUserPermission("org:create_job_listings:job_listings_update"))
+  ) {
     return {
       error: true,
-      message: "You don't have permission to create a job listing",
+      message: "You don't have permission to update a job listing",
     };
   }
   const { success, data } = jobListingSchema.safeParse(unsafeData);
   if (!success) {
     return {
       error: true,
-      message: "There was an error create your job listing",
+      message: "There was an error update your job listing",
     };
   }
 
   const jobListing = getJobListing(id, orgId);
+
+  if (jobListing == null) {
+    return {
+      error: true,
+      message: "There was an error update your job listing",
+    };
+  }
   const updatedJobListing = await updateJobListingDb(id, data);
 
   redirect(`/employer/job-listings/${updatedJobListing.id}`);
