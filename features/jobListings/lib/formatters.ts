@@ -73,3 +73,52 @@ export function formatJobListingStatus(status: JobListingStatus) {
       throw new Error(`Unknown status: ${status satisfies never}`);
   }
 }
+export function formatWage(
+  wage: number,
+  wageInterval: WageInterval,
+  khrWage?: number,
+) {
+  const usdFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+  });
+
+  const khrFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "KHR",
+    minimumFractionDigits: 0,
+  });
+
+  const usdPart = usdFormatter.format(wage);
+  const khrPart = khrWage ? ` - ${khrFormatter.format(khrWage)}` : "";
+
+  switch (wageInterval) {
+    case "hourly": {
+      return `${usdPart}${khrPart} / hr`;
+    }
+    case "yearly": {
+      return `${usdPart}${khrPart}`;
+    }
+    default:
+      throw new Error(`Unknown wage interval: ${wageInterval satisfies never}`);
+  }
+}
+
+export function formatJobListingLocation({
+  stateAbbreviation,
+  city,
+}: {
+  stateAbbreviation: string | null;
+  city: string | null;
+}) {
+  if (stateAbbreviation == null && city == null) return "None";
+
+  const locationParts = [];
+  if (city != null) locationParts.push(city);
+  if (stateAbbreviation != null) {
+    locationParts.push(stateAbbreviation.toUpperCase());
+  }
+
+  return locationParts.join(", ");
+}
