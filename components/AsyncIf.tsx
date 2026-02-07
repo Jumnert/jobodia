@@ -15,7 +15,7 @@ export function AsyncIf({
 }: Props) {
   return (
     <Suspense fallback={loadingFallback}>
-      <SuspendedComponents condition={condition} otherwise>
+      <SuspendedComponents condition={condition} otherwise={otherwise}>
         {children}
       </SuspendedComponents>
     </Suspense>

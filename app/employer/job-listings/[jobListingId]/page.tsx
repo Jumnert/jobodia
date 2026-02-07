@@ -3,15 +3,27 @@ import { MarkDownPartial } from "@/components/markdown/MarkDownPartial";
 import { MarkDownRenderer } from "@/components/markdown/MarkDownRenderer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { db } from "@/drizzle/db";
-import { JobListingTable } from "@/drizzle/schema";
+import {
+  jobListingApplicationRelations,
+  JobListingStatus,
+  JobListingTable,
+} from "@/drizzle/schema";
 import { JobListingBadges } from "@/features/jobListings/components/JobListingBadges";
 import { getJobListingsIdTag } from "@/features/jobListings/db/cache/jobListing";
 import { formatJobListingStatus } from "@/features/jobListings/lib/formatters";
+import { hasReachedMaxFeaturedJobListings } from "@/features/jobListings/lib/planFeatureHelpers";
+import { getNextJobListingStatus } from "@/features/jobListings/lib/utils";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermissions";
+import { hasPlanFeature } from "@/services/clerk/lib/planFeatures";
 import { and, eq } from "drizzle-orm";
-import { EditIcon } from "lucide-react";
+import { EditIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { cacheTag } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -64,6 +76,7 @@ async function SuspendedPage({ params }: Props) {
               </Link>
             </Button>
           </AsyncIf>
+          <StatusUpdateButton status={jobListing.status} />
         </div>
       </div>
       <MarkDownPartial
@@ -80,6 +93,68 @@ async function SuspendedPage({ params }: Props) {
   );
 }
 
+function StatusUpdateButton({ status }: { status: JobListingStatus }) {
+  const button = <Button variant="outline">Toggle</Button>;
+
+  return (
+    <AsyncIf
+      condition={() =>
+        hasOrgUserPermission(
+          "org:create_job_listings:job_listings_change_status",
+        )
+      }
+    >
+      {getNextJobListingStatus(status) === "published" ? (
+        <AsyncIf
+          condition={async () => {
+            const isMaxed = await hasReachedMaxFeaturedJobListings();
+            return !isMaxed;
+          }}
+          otherwise={
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  {statusToggleButtonText(status)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col gap-2">
+                You must upgrade your plan to post more job listings.
+                <Button asChild>
+                  <Link href="/employer/pricing">Upgrade Plan</Link>
+                </Button>
+              </PopoverContent>
+            </Popover>
+          }
+        >
+          {button}
+        </AsyncIf>
+      ) : (
+        button
+      )}
+    </AsyncIf>
+  );
+}
+function statusToggleButtonText(status: JobListingStatus) {
+  switch (status) {
+    case "delisted":
+    case "draft":
+      return (
+        <>
+          <EyeIcon className="size-4" />
+          Publish
+        </>
+      );
+    case "published":
+      return (
+        <>
+          <EyeOffIcon className="size-4" />
+          Delist
+        </>
+      );
+    default:
+      throw new Error(`Unknown status: ${status satisfies never}`);
+  }
+}
 async function getJobListing(id: string, orgId: string) {
   // "use cache"
   // cacheTag(getJobListingsIdTag(id))
