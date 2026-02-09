@@ -4,7 +4,7 @@ import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasPlanFeature } from "@/services/clerk/lib/planFeatures";
 import { and, count, eq } from "drizzle-orm";
 
-export async function hasReachedMaxFeaturedJobListings() {
+export async function hasReachedMaxPublishedJobListings() {
   const { orgId } = await getCurrentOrganization();
   if (orgId == null) return true;
 
@@ -17,7 +17,18 @@ export async function hasReachedMaxFeaturedJobListings() {
   ]);
   return !canPost.some(Boolean);
 }
+export async function hasReachedMaxFeaturedJobListings() {
+  const { orgId } = await getCurrentOrganization();
+  if (orgId == null) return true;
 
+  const count = await getFeaturedJobListingsCount(orgId);
+
+  const canFeature = await Promise.all([
+    hasPlanFeature("1_featured_job_listing").then((has) => has && count < 1),
+    hasPlanFeature("unlimit_featured_job_listings"),
+  ]);
+  return !canFeature.some(Boolean);
+}
 async function getPublishedJobListingsCount(orgId: string) {
   //   "use cache";
   //   cacheTag(getJobListingOrganizationTag(orgId));
@@ -29,6 +40,23 @@ async function getPublishedJobListingsCount(orgId: string) {
       and(
         eq(JobListingTable.organizationId, orgId),
         eq(JobListingTable.status, "published"),
+      ),
+    );
+
+  return res?.count ?? 0;
+}
+
+async function getFeaturedJobListingsCount(orgId: string) {
+  //   "use cache";
+  //   cacheTag(getJobListingOrganizationTag(orgId));
+
+  const [res] = await db
+    .select({ count: count() })
+    .from(JobListingTable)
+    .where(
+      and(
+        eq(JobListingTable.organizationId, orgId),
+        eq(JobListingTable.isFeatured, true),
       ),
     );
 
