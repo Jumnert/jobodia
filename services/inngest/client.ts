@@ -25,6 +25,11 @@ type Events = {
       userId: string;
     };
   };
+  "app/resume.uploaded": {
+    user: {
+      id: string;
+    };
+  };
 };
 export const inngest = new Inngest({
   id: "jobodia-board",
