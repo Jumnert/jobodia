@@ -10,7 +10,11 @@ import { LoadingSpinner } from "@/components/loadingSpinner";
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ClientSheet } from "./_ClientSheet";
 import { and, eq } from "drizzle-orm";
-import { JobListingTable } from "@/drizzle/schema";
+import {
+  JobListingApplicationTable,
+  JobListingTable,
+  UserResumeTable,
+} from "@/drizzle/schema";
 import { db } from "@/drizzle/db";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +24,29 @@ import { notFound } from "next/navigation";
 import { convertSearchParamsToString } from "@/lib/convertSearchParamsToString";
 import { JobListingBadges } from "@/features/jobListings/components/JobListingBadges";
 import { MarkDownRenderer } from "@/components/markdown/MarkDownRenderer";
+import { getCurrentUser } from "@/services/clerk/lib/getCurrentAuth";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { SignUpButton } from "@/services/clerk/componenets/AuthButtons";
+import { cacheTag } from "next/cache";
+import { getJobListingApplicationIdTag } from "@/features/jobListingApplication/db/cache/jobListingApplciations";
+import { connection } from "next/server";
+import { differenceInDays } from "date-fns";
+import { getUserResumeIdTag } from "@/features/users/db/cache/userResume";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { NewJobListingApplicationForm } from "@/features/jobListingApplication/components/NewJobListingApplicationForm";
 
 export default function JobListingPage({
   params,
@@ -141,11 +168,104 @@ async function JobListingDetails({
         <div className="flex flex-wrap gap-2 mt-2">
           <JobListingBadges jobListing={jobListing} />
         </div>
-        {/*todo: apply button */}
+        <Suspense fallback={<Button disabled>Apply</Button>}>
+          <ApplyButton jobListingId={jobListing.id} />
+        </Suspense>
       </div>
+
       <MarkDownRenderer source={jobListing.description} />
     </div>
   );
+}
+async function ApplyButton({ jobListingId }: { jobListingId: string }) {
+  const { userId } = await getCurrentUser();
+  if (userId == null)
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button>Apply</Button>
+        </PopoverTrigger>
+        <PopoverContent className="flex flex-col gap-2">
+          You need to create an account to apply to this job listing.
+          <SignUpButton />
+        </PopoverContent>
+      </Popover>
+    );
+  const application = await getJobListingApplication({ jobListingId, userId });
+  if (application != null) {
+    const formatter = new Intl.RelativeTimeFormat(undefined, {
+      style: "short",
+      numeric: "always",
+    });
+    await connection();
+
+    const difference = differenceInDays(application.createdAt, new Date());
+    return (
+      <div className="text-muted-foreground text-sm">
+        You Applied for this job{" "}
+        {difference === 0 ? "Today" : formatter.format(difference, "days")}
+      </div>
+    );
+  }
+  const userResume = await getUserResume(userId);
+  if (userResume == null)
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button>Apply</Button>
+        </PopoverTrigger>
+        <PopoverContent className="flex flex-col gap-2">
+          You need to upload a resume to apply to this job listing.
+          <Button asChild>
+            <Link href="/user-settings/resume">Upload Resume</Link>
+          </Button>
+        </PopoverContent>
+      </Popover>
+    );
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Apply</Button>
+      </DialogTrigger>
+      <DialogContent className="md:max-w-3xl max-h[calc(100%-2rem) overflow-hidden flex flex-col">
+        <DialogHeader className="flex-1">
+          <DialogTitle>Application</DialogTitle>
+          <DialogDescription>
+            Applying for a job cannot be undone and is somthing you can do only
+            once per job listing.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto">
+          <NewJobListingApplicationForm jobListingId={jobListingId} />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+async function getUserResume(userId: string) {
+  // "use cache"
+  // cacheTag(getUserResumeIdTag(userId))
+  return db.query.UserResumeTable.findFirst({
+    where: and(eq(UserResumeTable.userId, userId)),
+  });
+}
+
+async function getJobListingApplication({
+  jobListingId,
+  userId,
+}: {
+  jobListingId: string;
+  userId: string;
+}) {
+  // "use cache"
+  // cacheTag(getJobListingApplicationIdTag({ jobListingId, userId }))
+  return db.query.JobListingApplicationTable.findFirst({
+    where: and(
+      eq(JobListingApplicationTable.jobListingId, jobListingId),
+      eq(JobListingApplicationTable.userId, userId),
+    ),
+  });
 }
 async function getJobListing(id: string) {
   //   "use cache"
