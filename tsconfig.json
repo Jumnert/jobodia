@@ -29,7 +29,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "app/(job-seeker)/job-listings/jobListingId/_ClientSheet.tsx"
+    "app/(job-seeker)/job-listings/[jobListingId]/_ClientSheet.tsx"
   ],
   "exclude": ["node_modules"]
 }

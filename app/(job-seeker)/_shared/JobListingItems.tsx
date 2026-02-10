@@ -18,7 +18,7 @@ import { convertSearchParamsToString } from "@/lib/convertSearchParamsToString";
 import { cn } from "@/lib/utils";
 import { and, desc, eq, ilike, or, SQL } from "drizzle-orm";
 import Link from "next/link";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { differenceInDays } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { connection } from "next/dist/server/request/connection";
@@ -26,6 +26,7 @@ import { JobListingBadges } from "@/features/jobListings/components/JobListingBa
 import z, { optional } from "zod";
 import { getJobListingsGlobalTag } from "@/features/jobListings/db/cache/jobListing";
 import { cacheTag } from "next/cache";
+import { getOrganizationIdTag } from "@/features/organizations/db/cache/organizations";
 type Props = {
   searchParams: Promise<Record<string, string | string[]>>;
   params?: Promise<{ jobListingId: string }>;
@@ -153,7 +154,7 @@ function JobListingListItem({
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex flex-row gap-2">
+      <CardContent className="flex flex-row flex-wrap gap-2">
         <JobListingBadges
           jobListing={jobListing}
           className={jobListing.isFeatured ? "border-primary/35 " : undefined}
@@ -216,19 +217,20 @@ async function getJobListings(
     );
   }
 
-  return db.query.JobListingTable.findMany({
+  const data = await db.query.JobListingTable.findMany({
     where: or(
       jobListingId
         ? and(
-            eq(JobListingTable.status, "published"),
-            eq(JobListingTable.id, jobListingId),
-          )
+          eq(JobListingTable.status, "published"),
+          eq(JobListingTable.id, jobListingId),
+        )
         : undefined,
       and(eq(JobListingTable.status, "published"), ...whereConditions),
     ),
     with: {
       organization: {
         columns: {
+          id: true,
           name: true,
           imageUrl: true,
         },
@@ -236,4 +238,8 @@ async function getJobListings(
     },
     orderBy: [desc(JobListingTable.isFeatured), desc(JobListingTable.postedAt)],
   });
+  // data.forEach((listing) => {
+  //   cacheTag(getOrganizationIdTag(listing.organization.id));
+  // });
+  return data;
 }
