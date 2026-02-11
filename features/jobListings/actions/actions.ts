@@ -231,8 +231,8 @@ export async function getAiJobListingSearchResults(
 }
 
 async function getPublicJobListings() {
-  "use cache";
-  cacheTag(getJobListingsGlobalTag());
+  // "use cache";
+  // cacheTag(getJobListingsGlobalTag());
   return db.query.JobListingTable.findMany({
     where: eq(JobListingTable.status, "published"),
   });

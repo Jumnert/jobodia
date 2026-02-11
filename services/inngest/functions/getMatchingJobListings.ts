@@ -5,9 +5,7 @@ import {
   locationRequirements,
   wageIntervals,
 } from "@/drizzle/schema";
-import { createAgent } from "@inngest/agent-kit";
-import { gemini } from "inngest";
-import { getLastOutputMessage } from "./getLastOutputMessage";
+import Groq from "groq-sdk";
 
 const listingSchema = z.object({
   id: z.string(),
@@ -32,10 +30,18 @@ export async function getMatchingJobListings(
   },
 ) {
   const NO_JOBS = "No jobs found";
-  const agent = createAgent({
-    name: "Job Matching Agent",
-    description: "Agent for matching users with job listings",
-    system: `You are an expert at matching people with jobs based on their specific experience, and requirements. The provided user prompt will be a description that can include information about themselves as well what they are looking for in a job. ${
+
+  if (!process.env.GROQ_API_KEY) {
+    console.error("GROQ_API_KEY is not set");
+    return [];
+  }
+
+  try {
+    const groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+
+    const systemPrompt = `You are an expert at matching people with jobs based on their specific experience, and requirements. The provided user prompt will be a description that can include information about themselves as well what they are looking for in a job. ${
       maxNumberOfJobs
         ? `You are to return up to ${maxNumberOfJobs} jobs.`
         : "Return all jobs that match their requirements."
@@ -52,17 +58,32 @@ export async function getMatchingJobListings(
           }))
           .parse(listing),
       ),
-    )}`,
-    model: gemini({
-      model: "gemini-2.0-flash-exp",
-      apiKey: process.env.INNGEST_API_KEY,
-    }),
-  });
-  const result = await agent.run(prompt);
-  const lastMessage = getLastOutputMessage(result);
-  if (lastMessage == null || lastMessage === NO_JOBS) return [];
-  return lastMessage
-    .split(",")
-    .map((jobId) => jobId.trim())
-    .filter(Boolean);
+    )}`;
+
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const lastMessage = chatCompletion.choices[0]?.message?.content;
+
+    if (!lastMessage || lastMessage === NO_JOBS) return [];
+
+    return lastMessage
+      .split(",")
+      .map((jobId) => jobId.trim())
+      .filter(Boolean);
+  } catch (error) {
+    console.error("Error matching job listings:", error);
+    return [];
+  }
 }

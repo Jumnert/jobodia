@@ -14,20 +14,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { LoadingSwap } from "@/components/LoadingSwap";
 import { Button } from "@/components/ui/button";
 import { getAiJobListingSearchResults } from "../actions/actions";
+import { useRouter } from "next/navigation";
+
 export function JobListingAiSearchForm() {
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(jobListingAiSearchFormSchema),
     defaultValues: {
       query: "",
     },
   });
+
   async function onSubmit(data: z.infer<typeof jobListingAiSearchFormSchema>) {
     const results = await getAiJobListingSearchResults(data);
     if (results.error) {
       console.error(results.error);
       return;
     }
+    const params = new URLSearchParams();
+    results.jobIds.forEach((jobId) => params.append("jobIds", jobId));
+    router.push(`/?${params.toString()}`); // Changed from router.push`/?${params.toString()}`);
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
