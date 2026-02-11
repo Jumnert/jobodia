@@ -8,7 +8,7 @@ import {
   clerkDeleteOrganization,
 } from "@/services/inngest/functions/clerk";
 import { createAiSummaryOfUploadResume } from "@/services/inngest/functions/resume";
-
+import { rankApplication } from "@/services/inngest/functions/jobListingApplication";
 import { serve } from "inngest/next";
 
 // Create an API that serves zero functions
@@ -22,5 +22,6 @@ export const { GET, POST, PUT } = serve({
     clerkUpdateOrganization,
     clerkDeleteOrganization,
     createAiSummaryOfUploadResume,
+    rankApplication,
   ],
 });

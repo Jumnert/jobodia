@@ -1,8 +1,11 @@
 "use server";
 
 import z from "zod";
-import { jobListingSchema } from "./schemas";
-import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
+import { jobListingAiSearchFormSchema, jobListingSchema } from "./schemas";
+import {
+  getCurrentOrganization,
+  getCurrentUser,
+} from "@/services/clerk/lib/getCurrentAuth";
 import { error } from "console";
 import { redirect } from "next/navigation";
 import {
@@ -19,6 +22,9 @@ import {
   hasReachedMaxFeaturedJobListings,
   hasReachedMaxPublishedJobListings,
 } from "../lib/planFeatureHelpers";
+import { cacheTag } from "next/cache";
+import { getJobListingsGlobalTag } from "../db/cache/jobListing";
+import { getMatchingJobListings } from "@/services/inngest/functions/getMatchingJobListings";
 
 export async function createJobListing(
   unsafeData: z.infer<typeof jobListingSchema>,
@@ -184,4 +190,50 @@ export async function deleteJobListing(id: string) {
 
   await deleteJobListingDb(id);
   redirect("/employer");
+}
+
+export async function getAiJobListingSearchResults(
+  unsafe: z.infer<typeof jobListingAiSearchFormSchema>,
+): Promise<
+  { error: true; message?: string } | { error: false; jobIds: string[] }
+> {
+  const { success, data } = jobListingAiSearchFormSchema.safeParse(unsafe);
+  if (!success) {
+    return {
+      error: true,
+      message: "There was an error getting your job listing search results",
+    };
+  }
+  const { userId } = await getCurrentUser();
+  if (userId == null) {
+    return {
+      error: true,
+      message: "You need an account to use AI Search",
+    };
+  }
+  const allListings = await getPublicJobListings();
+  const matchingListings = await getMatchingJobListings(
+    data.query,
+    allListings,
+    {
+      maxNumberOfJobs: 10,
+    },
+  );
+  if (matchingListings.length === 0)
+    return {
+      error: true,
+      message: "No job Matching your criteria",
+    };
+  return {
+    error: false,
+    jobIds: matchingListings,
+  };
+}
+
+async function getPublicJobListings() {
+  "use cache";
+  cacheTag(getJobListingsGlobalTag());
+  return db.query.JobListingTable.findMany({
+    where: eq(JobListingTable.status, "published"),
+  });
 }
