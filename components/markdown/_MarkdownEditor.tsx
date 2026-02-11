@@ -19,9 +19,8 @@ import {
   InsertTable,
 } from "@mdxeditor/editor";
 import { Ref } from "react";
+import { markdownClassNames } from "./MarkDownRenderer";
 
-export const markdownClassNames =
-  "max-w-none prose prose-neutral dark:prose-invert font-sans";
 export default function InternalMarkdownEditor({
   ref,
   className,
@@ -32,11 +31,7 @@ export default function InternalMarkdownEditor({
     <MDXEditor
       {...props}
       ref={ref}
-      className={cn(
-        markdownClassNames,
-        isDarkMode && "dark-theme prose-invert",
-        className,
-      )}
+      className={cn(markdownClassNames, isDarkMode && "dark-theme", className)}
       suppressHtmlProcessing
       plugins={[
         headingsPlugin(),
