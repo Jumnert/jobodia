@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { UploadDropZone } from "@/services/uploadThing/components/uploadThing";
 import { useEffect, useState } from "react";
 
-export function DropzoneClient() {
+export function DropzoneClient({ hasResume }: { hasResume: boolean }) {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
@@ -20,6 +20,9 @@ export function DropzoneClient() {
     <UploadDropZone
       endpoint="resumeUploader"
       onClientUploadComplete={() => router.refresh()}
+      content={{
+        label: hasResume ? "Update Resume" : "Choose a file or drag and drop",
+      }}
     />
   );
 }

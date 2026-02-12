@@ -1,6 +1,7 @@
 import { db } from "@/drizzle/db";
 import { UserResumeTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function upsertUserResume(
   userId: string,
@@ -11,9 +12,12 @@ export async function upsertUserResume(
     .values({ userId, ...data })
     .onConflictDoUpdate({
       target: UserResumeTable.userId,
-      set: data,
+      set: {
+        ...data,
+        aiSummary: null, // Clear old summary when new file is uploaded
+      },
     });
-  // revalidateUserResumeCache(userId);
+  revalidatePath("/user-settings/resume");
 }
 export async function updateUserResume(
   userId: string,
@@ -24,5 +28,5 @@ export async function updateUserResume(
     .set(data)
     .where(eq(UserResumeTable.userId, userId));
 
-  // revalidateUserResumeCache(userId);
+  revalidatePath("/user-settings/resume");
 }

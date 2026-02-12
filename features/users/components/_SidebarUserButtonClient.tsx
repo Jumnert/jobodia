@@ -20,6 +20,7 @@ import { useClerk } from "@clerk/nextjs";
 
 import {
   ChevronsUpDown,
+  FileTextIcon,
   LogOutIcon,
   SettingsIcon,
   UserIcon,
@@ -74,6 +75,11 @@ export function SidebarUserButtonClient({ user }: { user: User }) {
         >
           <UserIcon className="mr-1" />
           Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/user-settings/resume" className="flex items-center">
+            <FileTextIcon className="mr-1" /> Resume
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
