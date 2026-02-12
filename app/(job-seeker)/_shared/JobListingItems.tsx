@@ -221,9 +221,9 @@ async function getJobListings(
     where: or(
       jobListingId
         ? and(
-          eq(JobListingTable.status, "published"),
-          eq(JobListingTable.id, jobListingId),
-        )
+            eq(JobListingTable.status, "published"),
+            eq(JobListingTable.id, jobListingId),
+          )
         : undefined,
       and(eq(JobListingTable.status, "published"), ...whereConditions),
     ),

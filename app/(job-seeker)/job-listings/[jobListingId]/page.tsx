@@ -58,27 +58,29 @@ export default function JobListingPage({
   return (
     <>
       {/* Desktop: Resizable panels */}
+      <div className="max-lg:hidden h-screen overflow-hidden">
+        <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+          <ResizablePanel defaultSize={60} minSize={30}>
+            <div className="h-full overflow-y-auto p-4">
+              <JobListingItems searchParams={searchParams} params={params} />
+            </div>
+          </ResizablePanel>
 
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="max-lg:hidden h-screen"
-      >
-        <ResizablePanel defaultSize={60} minSize={30}>
-          <div className="p-4 overflow-y-auto h-full">
-            <JobListingItems searchParams={searchParams} params={params} />
-          </div>
-        </ResizablePanel>
+          <ResizableHandle withHandle className="mx-2" />
 
-        <ResizableHandle withHandle className="mx-2" />
+          <ResizablePanel defaultSize={40} minSize={30}>
+            <div className="h-full overflow-y-auto p-4">
+              <Suspense fallback={<LoadingSpinner />}>
+                <JobListingDetails
+                  params={params}
+                  searchParams={searchParams}
+                />
+              </Suspense>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
 
-        <ResizablePanel defaultSize={40} minSize={30}>
-          <div className="p-4 overflow-y-auto h-full">
-            <Suspense fallback={<LoadingSpinner />}>
-              <JobListingDetails params={params} searchParams={searchParams} />
-            </Suspense>
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
       {/* Mobile: Job list + Sheet */}
       <div className="lg:hidden">
         <div className="p-4 h-screen overflow-y-auto">

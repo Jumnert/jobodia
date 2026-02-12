@@ -27,7 +27,7 @@ export async function getMatchingJobListings(
     maxNumberOfJobs,
   }: {
     maxNumberOfJobs?: number;
-  },
+  } = {},
 ) {
   const NO_JOBS = "No jobs found";
 

@@ -4,8 +4,10 @@ import { SidebarUserButton } from "@/features/users/components/sidebarUserButton
 import {
   BrainCircuitIcon,
   ClipboardListIcon,
+  DollarSignIcon,
   LayoutDashboard,
   LogInIcon,
+  PrinterCheckIcon,
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -29,6 +31,11 @@ export default function JobSeekerLayout({
                 href: "/ai-search",
                 icon: <BrainCircuitIcon />,
                 label: "Ai Search",
+              },
+              {
+                href: "/employer/pricing",
+                icon: <DollarSignIcon />,
+                label: "Pricing",
               },
               {
                 href: "/employer",
