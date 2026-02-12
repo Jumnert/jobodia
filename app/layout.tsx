@@ -26,12 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <UserSyncer />
-      <OrganizationSyncer />
       <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
         >
+          <UserSyncer />
+          <OrganizationSyncer />
           {children}
           <Toaster />
           <UploadThingSSR />

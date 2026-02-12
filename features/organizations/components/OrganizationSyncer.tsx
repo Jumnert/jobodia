@@ -4,6 +4,7 @@ import { useOrganization } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { syncOrganization } from "../actions/syncOrganization";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function OrganizationSyncer() {
   const { organization } = useOrganization();
@@ -11,9 +12,14 @@ export function OrganizationSyncer() {
 
   useEffect(() => {
     if (organization) {
-      syncOrganization().then(() => {
-        router.refresh();
-      });
+      syncOrganization()
+        .then(() => {
+          router.refresh();
+        })
+        .catch((err) => {
+          console.error("Organization sync failed:", err);
+          toast.error("Failed to sync organization data.");
+        });
     }
   }, [organization?.id, organization?.name, organization?.imageUrl, router]);
 

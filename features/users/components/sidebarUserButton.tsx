@@ -14,9 +14,9 @@ export function SidebarUserButton() {
   );
 }
 async function SideBarUserSuspense() {
-  const { user } = await getCurrentUser({ allData: true });
+  const { userId, user } = await getCurrentUser({ allData: true });
 
-  if (user == null) {
+  if (userId == null) {
     return (
       <SignOutButton>
         <SidebarMenuButton>
@@ -26,5 +26,14 @@ async function SideBarUserSuspense() {
       </SignOutButton>
     );
   }
-  return <SidebarUserButtonClient user={user} />;
+
+  // If we have a userId but no DB user, pass a placeholder
+  // The client-side hook in SidebarUserButtonClient will show the real data
+  const displayUser = user ?? {
+    name: "Loading...",
+    email: "",
+    imageUrl: "",
+  };
+
+  return <SidebarUserButtonClient user={displayUser} />;
 }

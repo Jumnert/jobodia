@@ -28,19 +28,23 @@ export async function getCurrentOrganization({ allData = false } = {}) {
 }
 
 async function getUser(id: string) {
-  //   "use cache";
-
-  // cacheTag(getUserIdTag(id));
-  return db.query.UserTable.findFirst({
-    where: eq(UserTable.id, id),
-  });
+  try {
+    return await db.query.UserTable.findFirst({
+      where: eq(UserTable.id, id),
+    });
+  } catch (error) {
+    console.error("Database error in getUser:", error);
+    return null;
+  }
 }
 
 async function getOrganization(id: string) {
-  //   "use cache";
-
-  // cacheTag(getOrganziationIdTag(id));
-  return db.query.OrganizationTable.findFirst({
-    where: eq(OrganizationTable.id, id),
-  });
+  try {
+    return await db.query.OrganizationTable.findFirst({
+      where: eq(OrganizationTable.id, id),
+    });
+  } catch (error) {
+    console.error("Database error in getOrganization:", error);
+    return null;
+  }
 }
