@@ -22,7 +22,7 @@ import {
   hasReachedMaxFeaturedJobListings,
   hasReachedMaxPublishedJobListings,
 } from "../lib/planFeatureHelpers";
-import { cacheTag } from "next/cache";
+import { cacheTag, revalidatePath } from "next/cache";
 import { getJobListingsGlobalTag } from "../db/cache/jobListing";
 import { getMatchingJobListings } from "@/services/inngest/functions/getMatchingJobListings";
 
@@ -52,6 +52,7 @@ export async function createJobListing(
     status: "draft",
   });
 
+  revalidatePath("/employer");
   redirect(`/employer/job-listings/${jobListing.id}`);
 }
 
@@ -87,6 +88,8 @@ export async function updateJobListing(
   }
   const updatedJobListing = await updateJobListingDb(id, data);
 
+  revalidatePath("/employer");
+  revalidatePath(`/employer/job-listings/${id}`);
   redirect(`/employer/job-listings/${updatedJobListing.id}`);
 }
 
@@ -134,8 +137,13 @@ export async function toggleJobListingStatus(id: string) {
         ? new Date()
         : undefined,
   });
+
+  revalidatePath("/employer");
+  revalidatePath(`/employer/job-listings/${id}`);
+
   return {
     error: false,
+    message: "Job Listing Status Updated",
   };
 }
 export async function toggleJobListingFeatured(id: string) {
@@ -166,8 +174,13 @@ export async function toggleJobListingFeatured(id: string) {
   await updateJobListingDb(id, {
     isFeatured: newFeaturedStatus,
   });
+
+  revalidatePath("/employer");
+  revalidatePath(`/employer/job-listings/${id}`);
+
   return {
     error: false,
+    message: "Job Listing Featured Status Updated",
   };
 }
 export async function deleteJobListing(id: string) {
@@ -189,6 +202,7 @@ export async function deleteJobListing(id: string) {
   }
 
   await deleteJobListingDb(id);
+  revalidatePath("/employer");
   redirect("/employer");
 }
 

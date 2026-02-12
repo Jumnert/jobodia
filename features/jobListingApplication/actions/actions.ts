@@ -9,6 +9,7 @@ import { insertJobListing } from "@/features/jobListings/db/jobListing";
 import { newJobListingApplicationSchema } from "./schemas";
 import { insertJobListingApplication } from "../db/jobListingsApplications";
 import { inngest } from "@/services/inngest/client";
+import { revalidatePath } from "next/cache";
 
 export async function createJobListingApplication(
   jobListingId: string,
@@ -46,6 +47,10 @@ export async function createJobListingApplication(
       userId,
     },
   });
+
+  revalidatePath(`/job-listings/${jobListingId}`);
+  revalidatePath(`/employer/job-listings/${jobListingId}`);
+
   return {
     error: false,
     message: "Application submitted successfully",

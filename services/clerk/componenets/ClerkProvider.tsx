@@ -2,14 +2,25 @@
 import { ClerkProvider as OriginalClerkProvider } from "@clerk/nextjs";
 import { ReactNode, Suspense } from "react";
 import { dark } from "@clerk/themes";
-import { useIsDarkMode } from "@/hooks/useIsDarkMode";
+import { useTheme } from "next-themes";
+
 export function ClerkProvider({ children }: { children: ReactNode }) {
-  const isDarkmode = useIsDarkMode();
+  return (
+    <Suspense fallback={null}>
+      <ClerkProviderContent>{children}</ClerkProviderContent>
+    </Suspense>
+  );
+}
+
+function ClerkProviderContent({ children }: { children: ReactNode }) {
+  const { resolvedTheme } = useTheme();
   return (
     <OriginalClerkProvider
-      appearance={isDarkmode ? { baseTheme: [dark] } : undefined}
+      appearance={{
+        baseTheme: resolvedTheme === "dark" ? dark : undefined,
+      }}
     >
-      <Suspense>{children}</Suspense>
+      {children}
     </OriginalClerkProvider>
   );
 }

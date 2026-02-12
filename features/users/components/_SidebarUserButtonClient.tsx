@@ -34,6 +34,18 @@ type User = {
 export function SidebarUserButtonClient({ user }: { user: User }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const { openUserProfile } = useClerk();
+  // Use client-side hook for real-time updates
+  const { user: clerkUser } = useClerk();
+
+  // Merge initial server data with client data if available
+  const displayUser = clerkUser
+    ? {
+        name: clerkUser.fullName || clerkUser.username || "",
+        imageUrl: clerkUser.imageUrl,
+        email: clerkUser.primaryEmailAddress?.emailAddress || "",
+      }
+    : user;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -41,7 +53,7 @@ export function SidebarUserButtonClient({ user }: { user: User }) {
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <UserInfo {...user} />
+          <UserInfo {...displayUser} />
           <ChevronsUpDown className="ml-auto group-data-[state=collapsed]:hidden" />
         </SidebarMenuButton>
       </DropdownMenuTrigger>
@@ -52,7 +64,7 @@ export function SidebarUserButtonClient({ user }: { user: User }) {
         className="min-w-64 max-w-80"
       >
         <DropdownMenuLabel className="font-normal p-1">
-          <UserInfo {...user} />
+          <UserInfo {...displayUser} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem

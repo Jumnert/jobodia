@@ -179,9 +179,9 @@ async function getJobListings(
   searchParams: z.infer<typeof searchParamsSchema>,
   jobListingId: string | undefined,
 ) {
-  // "use cache"
+  "use cache";
+  cacheTag(getJobListingsGlobalTag());
 
-  //   cacheTag(getJobListingsGlobalTag())
   const whereConditions: (SQL | undefined)[] = [];
   if (searchParams.title) {
     whereConditions.push(
@@ -238,8 +238,8 @@ async function getJobListings(
     },
     orderBy: [desc(JobListingTable.isFeatured), desc(JobListingTable.postedAt)],
   });
-  // data.forEach((listing) => {
-  //   cacheTag(getOrganizationIdTag(listing.organization.id));
-  // });
+  data.forEach((listing) => {
+    cacheTag(getOrganizationIdTag(listing.organization.id));
+  });
   return data;
 }

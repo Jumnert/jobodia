@@ -4,6 +4,7 @@ import z from "zod";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentAuth";
 import { userNotificationSettingsSchema } from "./schema";
 import { updateUserNotificationSettings as updateUserNotificationSettingsDb } from "@/features/users/db/userNotificationSettings";
+import { revalidatePath } from "next/cache";
 
 export async function updateUserNotificationSettings(
   unsafeData: z.infer<typeof userNotificationSettingsSchema>,
@@ -25,6 +26,7 @@ export async function updateUserNotificationSettings(
     };
   }
   await updateUserNotificationSettingsDb(userId, data);
+  revalidatePath("/user-settings/notifications");
   return {
     error: false,
     message: "Successfully updated your notifications settings",

@@ -34,6 +34,8 @@ import { Suspense } from "react";
 import { object } from "zod";
 import { JobListingMenuGroup } from "./_JobListingMenuGroup";
 
+import { OrganizationSyncer } from "@/features/organizations/components/OrganizationSyncer";
+
 export default function EmployeerLayout({
   children,
 }: {
@@ -41,7 +43,10 @@ export default function EmployeerLayout({
 }) {
   return (
     <Suspense>
-      <LayoutSuspense>{children}</LayoutSuspense>
+      <LayoutSuspense>
+        <OrganizationSyncer />
+        {children}
+      </LayoutSuspense>
     </Suspense>
   );
 }

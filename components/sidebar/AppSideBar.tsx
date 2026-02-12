@@ -29,7 +29,7 @@ export function AppSideBar({
         <Sidebar collapsible="icon" className="overflow-hidden">
           <SidebarHeader className="flex-row">
             <SidebarTrigger />
-            <span className="text-xl text-nowrap">Jobodia</span>
+            <span className="text-xl text-nowrap font-bold">Jobodia</span>
           </SidebarHeader>
           <SidebarContent>{content}</SidebarContent>
           <SignedIn>
