@@ -10,5 +10,8 @@ if (!databaseUrl && process.env.NODE_ENV === "production") {
   );
 }
 
-const sql = neon(databaseUrl || "");
+// Clean the connection string for serverless compatibility
+const cleanedUrl = databaseUrl?.replace(/&?channel_binding=require/, "") || "";
+
+const sql = neon(cleanedUrl);
 export const db = drizzle({ client: sql, schema });
