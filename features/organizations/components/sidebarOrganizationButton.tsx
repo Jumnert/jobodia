@@ -17,12 +17,12 @@ export function SidebarOrganizationButton() {
   );
 }
 async function SideBarOrganizationSuspense() {
-  const [{ user }, { organization }] = await Promise.all([
+  const [{ user }, { orgId, organization }] = await Promise.all([
     getCurrentUser({ allData: true }),
     getCurrentOrganization({ allData: true }),
   ]);
 
-  if (user == null || organization == null) {
+  if (user == null) {
     return (
       <SignOutButton>
         <SidebarMenuButton>
@@ -32,7 +32,24 @@ async function SideBarOrganizationSuspense() {
       </SignOutButton>
     );
   }
+
+  // If we have an orgId but no DB organization, pass a placeholder
+  // The client-side useClerk() hook will fill in the real data
+  const displayOrg =
+    organization ?? (orgId ? { name: "Loading...", imageUrl: null } : null);
+
+  if (displayOrg == null) {
+    return (
+      <SignOutButton>
+        <SidebarMenuButton>
+          <LogOutIcon />
+          <span>Log Out</span>
+        </SidebarMenuButton>
+      </SignOutButton>
+    );
+  }
+
   return (
-    <SidebarOrganizationButtonClient user={user} organization={organization} />
+    <SidebarOrganizationButtonClient user={user} organization={displayOrg} />
   );
 }

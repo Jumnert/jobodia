@@ -4,7 +4,18 @@ import { eq } from "drizzle-orm";
 import { revalidateUserCache } from "./cache/users";
 
 export async function insertUser(user: typeof UserTable.$inferInsert) {
-  await db.insert(UserTable).values(user).onConflictDoNothing();
+  await db
+    .insert(UserTable)
+    .values(user)
+    .onConflictDoUpdate({
+      target: UserTable.id,
+      set: {
+        name: user.name,
+        imageUrl: user.imageUrl,
+        email: user.email,
+        updatedAt: user.updatedAt,
+      },
+    });
   revalidateUserCache(user.id);
 }
 

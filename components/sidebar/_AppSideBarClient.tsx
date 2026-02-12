@@ -2,7 +2,7 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 export default function AppSidebarClient({
   children,
@@ -10,7 +10,13 @@ export default function AppSidebarClient({
   children: ReactNode;
 }) {
   const isMobile = useIsMobile();
-  if (isMobile) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (mounted && isMobile) {
     return (
       <div className="flex flex-col w-full">
         <div className="p-2 border-b flex items-center gap-1">

@@ -6,7 +6,17 @@ import { revalidateOrganizationCache } from "./cache/organizations";
 export async function insertOrganization(
   organization: typeof OrganizationTable.$inferInsert,
 ) {
-  await db.insert(OrganizationTable).values(organization).onConflictDoNothing();
+  await db
+    .insert(OrganizationTable)
+    .values(organization)
+    .onConflictDoUpdate({
+      target: OrganizationTable.id,
+      set: {
+        name: organization.name,
+        imageUrl: organization.imageUrl,
+        updatedAt: organization.updatedAt,
+      },
+    });
   revalidateOrganizationCache(organization.id);
 }
 

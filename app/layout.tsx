@@ -16,10 +16,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Jobodia",
-  description: "Browser Various ton of job in Cambodia and get hired now.",
-};
+import { OrganizationSyncer } from "@/features/organizations/components/OrganizationSyncer";
+import { UserSyncer } from "@/features/users/components/UserSyncer";
 
 export default function RootLayout({
   children,
@@ -28,6 +26,8 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
+      <UserSyncer />
+      <OrganizationSyncer />
       <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}

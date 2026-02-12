@@ -25,6 +25,7 @@ import {
 } from "@/drizzle/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import {
@@ -56,6 +57,12 @@ export function JobListingFilterForm() {
   const router = useRouter();
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const form = useForm({
     resolver: zodResolver(jobListingFilterSchema),
     defaultValues: {
@@ -70,6 +77,7 @@ export function JobListingFilterForm() {
       type: (searchParams.get("type") as JobListingType) ?? ANY_VALUE,
     },
   });
+
   function onSubmit(data: z.infer<typeof jobListingFilterSchema>) {
     const newParams = new URLSearchParams();
 
@@ -91,6 +99,21 @@ export function JobListingFilterForm() {
     router.push(`${pathname}?${newParams.toString()}`);
     setOpenMobile(false);
   }
+
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="grid gap-2">
+            <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+            <div className="h-9 w-full bg-muted animate-pulse rounded" />
+          </div>
+        ))}
+        <div className="h-9 w-full bg-muted animate-pulse rounded" />
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -222,5 +245,4 @@ export function JobListingFilterForm() {
       </form>
     </Form>
   );
-  return null;
 }

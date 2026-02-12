@@ -1,7 +1,7 @@
 "use server";
 
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { updateOrganization } from "@/features/organizations/db/users";
+import { insertOrganization } from "@/features/organizations/db/users";
 import { revalidatePath } from "next/cache";
 
 export async function syncOrganization() {
@@ -15,9 +15,11 @@ export async function syncOrganization() {
 
   if (!organization) return;
 
-  await updateOrganization(orgId, {
+  await insertOrganization({
+    id: organization.id,
     name: organization.name,
     imageUrl: organization.imageUrl,
+    updatedAt: new Date(),
   });
 
   revalidatePath("/");
