@@ -13,12 +13,16 @@ export function UserSyncer() {
   useEffect(() => {
     if (isLoaded && user) {
       syncUser()
-        .then(() => {
-          router.refresh();
+        .then((result) => {
+          if (result.success) {
+            router.refresh();
+          } else if (result.error) {
+            toast.error(`Sync failed: ${result.error}`);
+          }
         })
         .catch((err) => {
           console.error("User sync failed:", err);
-          toast.error("Failed to sync user data with database.");
+          toast.error("An unexpected error occurred during sync.");
         });
     }
   }, [user?.id, user?.fullName, user?.imageUrl, isLoaded, router]);
