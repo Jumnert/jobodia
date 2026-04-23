@@ -5,6 +5,7 @@ import { UserResumeTable } from "@/drizzle/schema";
 import { updateUserResume } from "@/features/users/db/userResumes";
 import { extractText } from "unpdf";
 import Groq from "groq-sdk";
+import { uploadThing } from "@/services/uploadThing/client";
 
 declare const process: {
   env: {
@@ -32,6 +33,7 @@ export const createAiSummaryOfUploadResume = inngest.createFunction(
         where: eq(UserResumeTable.userId, userId),
         columns: {
           resumeFileUrl: true,
+          resumeFileKey: true,
         },
       });
     });
@@ -40,7 +42,10 @@ export const createAiSummaryOfUploadResume = inngest.createFunction(
 
     // Extract text from PDF
     const resumeText = await step.run("extract-pdf-text", async () => {
-      const response = await fetch(userResume.resumeFileUrl);
+      const signedUrl = await uploadThing.generateSignedURL(
+        userResume.resumeFileKey,
+      );
+      const response = await fetch(signedUrl.ufsUrl);
       if (!response.ok) {
         throw new Error(
           `Failed to fetch uploaded resume: ${response.status} ${response.statusText}`,

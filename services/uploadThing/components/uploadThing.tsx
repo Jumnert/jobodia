@@ -26,7 +26,7 @@ export function UploadDropZone({
         res.forEach(({ serverData }) => {
           if (serverData && "message" in serverData) {
             const showToast =
-              "summaryQueued" in serverData && serverData.summaryQueued === false
+              "summaryQueued" in serverData && !serverData.summaryQueued
                 ? toast.error
                 : toast.success;
 

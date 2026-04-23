@@ -69,7 +69,10 @@ export const customFileRouter = {
             ? "Resume uploaded successfully. AI summary is now processing."
             : "Resume uploaded, but AI summary could not be started. Check Inngest and GROQ configuration.",
           summaryQueued,
-        } as const;
+        } satisfies {
+          message: string;
+          summaryQueued: boolean;
+        };
       } catch (error) {
         console.error("Error in onUploadComplete:", error);
         throw error;
