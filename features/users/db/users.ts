@@ -3,7 +3,28 @@ import { UserTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { revalidateUserCache } from "./cache/users";
 
+function isUserEmailConflict(error: unknown) {
+  if (!(error instanceof Error)) return false;
+
+  const cause = error.cause as
+    | { code?: string; constraint?: string; detail?: string }
+    | undefined;
+
+  return (
+    cause?.code === "23505" &&
+    (cause.constraint === "users_email_unique" ||
+      cause.detail?.includes("(email)=") === true)
+  );
+}
+
 export async function insertUser(user: typeof UserTable.$inferInsert) {
+  return insertUserWithOptions(user);
+}
+
+export async function insertUserWithOptions(
+  user: typeof UserTable.$inferInsert,
+  { revalidate = true }: { revalidate?: boolean } = {},
+) {
   // 1. Try to insert or update by ID
   try {
     await db
@@ -18,9 +39,9 @@ export async function insertUser(user: typeof UserTable.$inferInsert) {
           updatedAt: user.updatedAt,
         },
       });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 2. If it fails because the email is already taken by another ID
-    if (error.message?.includes("users_email_unique")) {
+    if (isUserEmailConflict(error)) {
       await db
         .update(UserTable)
         .set({
@@ -34,7 +55,10 @@ export async function insertUser(user: typeof UserTable.$inferInsert) {
       throw error;
     }
   }
-  revalidateUserCache(user.id);
+
+  if (revalidate) {
+    revalidateUserCache(user.id);
+  }
 }
 
 export async function updateUser(

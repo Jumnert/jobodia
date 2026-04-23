@@ -7,6 +7,7 @@ import { db } from "@/drizzle/db";
 import { eq } from "drizzle-orm";
 import { UserResumeTable } from "@/drizzle/schema";
 import { uploadThing } from "./client";
+import { ensureDbUser } from "../clerk/lib/ensureDbUser";
 
 const f = createUploadthing();
 
@@ -28,6 +29,7 @@ export const customFileRouter = {
     .middleware(async () => {
       const { userId } = await getCurrentUser();
       if (userId == null) throw new UploadThingError("Unauthorized");
+      await ensureDbUser(userId);
       return { userId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -50,16 +52,24 @@ export const customFileRouter = {
         }
 
         console.log("Sending to Inngest...");
+        let summaryQueued = true;
+
         await inngest
           .send({
             name: "app/resume.uploaded",
             user: { id: userId },
           })
           .catch((err) => {
+            summaryQueued = false;
             console.error("Failed to send to Inngest:", err);
           });
 
-        return { message: "Resume uploaded successfully" } as const;
+        return {
+          message: summaryQueued
+            ? "Resume uploaded successfully. AI summary is now processing."
+            : "Resume uploaded, but AI summary could not be started. Check Inngest and GROQ configuration.",
+          summaryQueued,
+        } as const;
       } catch (error) {
         console.error("Error in onUploadComplete:", error);
         throw error;

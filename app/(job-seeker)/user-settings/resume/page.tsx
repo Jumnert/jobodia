@@ -12,8 +12,6 @@ import { getCurrentUser } from "@/services/clerk/lib/getCurrentAuth";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cacheTag } from "next/cache";
-import { getUserResumeIdTag } from "@/features/users/db/cache/userResume";
 import { db } from "@/drizzle/db";
 import { eq } from "drizzle-orm";
 import { UserResumeTable } from "@/drizzle/schema";
@@ -76,7 +74,7 @@ async function AISummaryCard() {
   if (userResume == null) return null;
 
   if (userResume.aiSummary == null) {
-    return <AISummaryPoller userId={userId} />;
+    return <AISummaryPoller />;
   }
 
   return (

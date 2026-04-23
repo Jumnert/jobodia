@@ -1,16 +1,19 @@
 import { db } from "@/drizzle/db";
-import { UserTable } from "@/drizzle/schema";
 import { UserNotificationSettingsTable } from "@/drizzle/schema/userNotificationSettings";
 import { revalidateUserNotificationSettingsCache } from "./cache/userNotificationSettings";
 
 export async function insertUserNotificationSettings(
   settings: typeof UserNotificationSettingsTable.$inferInsert,
+  { revalidate = true }: { revalidate?: boolean } = {},
 ) {
   await db
     .insert(UserNotificationSettingsTable)
     .values(settings)
     .onConflictDoNothing();
-  revalidateUserNotificationSettingsCache(settings.userId);
+
+  if (revalidate) {
+    revalidateUserNotificationSettingsCache(settings.userId);
+  }
 }
 
 export async function updateUserNotificationSettings(

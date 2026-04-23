@@ -12,6 +12,10 @@ declare const process: {
   };
 };
 
+function normalizeExtractedText(text: string | string[]) {
+  return (Array.isArray(text) ? text.join("\n\n") : text).trim();
+}
+
 export const createAiSummaryOfUploadResume = inngest.createFunction(
   {
     id: "create-ai-summary-of-upload-resume",
@@ -37,14 +41,30 @@ export const createAiSummaryOfUploadResume = inngest.createFunction(
     // Extract text from PDF
     const resumeText = await step.run("extract-pdf-text", async () => {
       const response = await fetch(userResume.resumeFileUrl);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch uploaded resume: ${response.status} ${response.statusText}`,
+        );
+      }
+
       const arrayBuffer = await response.arrayBuffer();
       const buffer = new Uint8Array(arrayBuffer);
 
-      const { text } = await extractText(buffer);
-      return text;
+      const { text } = await extractText(buffer, { mergePages: true });
+      const normalizedText = normalizeExtractedText(text);
+
+      if (!normalizedText) {
+        throw new Error("No readable text could be extracted from the uploaded PDF");
+      }
+
+      return normalizedText;
     });
 
     const result = await step.run("create-ai-summary", async () => {
+      if (!process.env.GROQ_API_KEY) {
+        throw new Error("GROQ_API_KEY is not set");
+      }
+
       const groq = new Groq({
         apiKey: process.env.GROQ_API_KEY,
       });

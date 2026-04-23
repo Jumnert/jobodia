@@ -1,6 +1,5 @@
 "use client";
 import {
-  generateUploadButton,
   generateUploadDropzone,
 } from "@uploadthing/react";
 import { customFileRouter } from "../router";
@@ -26,7 +25,12 @@ export function UploadDropZone({
       onClientUploadComplete={(res) => {
         res.forEach(({ serverData }) => {
           if (serverData && "message" in serverData) {
-            toast.success(serverData.message as string);
+            const showToast =
+              "summaryQueued" in serverData && serverData.summaryQueued === false
+                ? toast.error
+                : toast.success;
+
+            showToast(serverData.message as string);
           }
         });
         onClientUploadComplete?.(res);

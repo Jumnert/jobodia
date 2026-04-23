@@ -1,19 +1,29 @@
 import { db } from "@/drizzle/db";
 import { OrganizationTable, UserTable } from "@/drizzle/schema";
-import {
-  getUserGlobalTag,
-  getUserIdTag,
-} from "@/features/users/db/cache/users";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
+import { ensureDbUser } from "./ensureDbUser";
 // import { cacheTag } from "next/cache";
 
 export async function getCurrentUser({ allData = false } = {}) {
   const { userId } = await auth();
+  const user =
+    allData && userId != null
+      ? await getUser(userId).then(async (existingUser) => {
+          if (existingUser) return existingUser;
+
+          try {
+            return await ensureDbUser(userId);
+          } catch (error) {
+            console.error("Failed to ensure DB user exists:", error);
+            return null;
+          }
+        })
+      : undefined;
 
   return {
     userId,
-    user: allData && userId != null ? await getUser(userId) : undefined,
+    user,
   };
 }
 
